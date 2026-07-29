@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+# Don't generate .pyc files
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Flush logs immediately
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Create a non-root user
+RUN groupadd -r appgroup && \
+    useradd -r -g appgroup -u 10001 appuser
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY app.py .
+
+RUN chown -R appuser:appgroup /app
+
+USER appuser
+
+EXPOSE 8080
+
+CMD ["python", "app.py"]
