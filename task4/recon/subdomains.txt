@@ -1,0 +1,17 @@
+pinacolada.dodopayments.tech
+ozone.dodopayments.tech
+sequin.dodopayments.tech
+plunk-v2.dodopayments.tech
+api-plunk-v2.dodopayments.tech
+app-plunk-v2.dodopayments.tech
+docs-plunk-v2.dodopayments.tech
+partner-api.dodopayments.tech
+prowler.infra.dodopayments.tech
+prowler-api.infra.dodopayments.tech
+sentry.dodopayments.tech
+sentry-prod.infra.dodopayments.tech
+n8n.dodopayments.tech
+ozone-v2.dodopayments.tech
+signoz-prod.infra.dodopayments.tech
+kafka-ui-prod.infra.dodopayments.tech
+kafka-ui-dev.infra.dodopayments.tech
