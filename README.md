@@ -1,385 +1,330 @@
-# Ledger API - Kubernetes & Istio Security Deployment
+# Ledger API Security & DevOps Assessment
 
 ## Overview
 
-This project demonstrates the deployment of a secure Ledger API application on Kubernetes with Istio Service Mesh integration.
+This repository contains my submission for the **Dodo Payments Security & DevOps Engineer Technical Assessment**.
 
-The deployment focuses on Kubernetes orchestration, service mesh security, encrypted communication, and traffic control.
+The objective of this assessment was to transform an intentionally vulnerable application into a production-ready deployment by implementing Kubernetes security hardening, secure CI/CD practices, Zero Trust networking using Istio, and an authorized security assessment.
 
-## Implemented Features
+---
 
-* Containerized Ledger API application
-* Kubernetes Deployment and Service
-* Dedicated Kubernetes namespace
-* Istio Service Mesh integration
-* Automatic Istio sidecar injection
-* Mutual TLS (mTLS) with STRICT mode
-* Istio AuthorizationPolicy
-* Kubernetes NetworkPolicy
-* Secure service-to-service communication
+# Assessment Progress
+
+| Task | Status |
+|------|--------|
+| ✅ Task 1 – Deploy & Harden the Workload | Completed |
+| ✅ Task 2 – Secure CI/CD Pipeline & Supply Chain | Completed |
+| ✅ Task 3 – Service Mesh & Zero Trust (Istio) | Completed |
+| ✅ Task 4 – Reconnaissance & Penetration Testing | Completed |
+
+---
+
+# Repository Structure
+
+```
+.
+├── .github/
+│   └── workflows/
+├── app/
+├── deploy/
+├── docs/
+├── k8s/
+├── policies/
+├── security/
+├── task4/
+│   ├── recon/
+│   ├── report/
+│   └── screenshots/
+├── .gitleaks.toml
+└── README.md
+```
 
 ---
 
 # Architecture
 
 ```
-                    Kubernetes Cluster
-
-                           |
-                           |
-                    payments namespace
-
-                           |
-        -------------------------------------
-        |                                   |
-   ledger-api pods                    reporting pod
-
-        |
-        |
-   ---------------------
-   |                   |
-Application        Istio Proxy
-Container          (Envoy Sidecar)
-
-```
-
-## Technology Stack
-
-| Technology  | Purpose                              |
-| ----------- | ------------------------------------ |
-| Kubernetes  | Container orchestration              |
-| Istio       | Service mesh and security            |
-| Envoy Proxy | Sidecar proxy for traffic management |
-| Docker      | Containerization                     |
-| YAML        | Kubernetes configuration             |
-| mTLS        | Encrypted service communication      |
-
----
-
-# Kubernetes Deployment
-
-## Namespace Creation
-
-Created a dedicated namespace for application deployment:
-
-```bash
-kubectl create namespace payments
-```
-
-Enabled automatic Istio sidecar injection:
-
-```bash
-kubectl label namespace payments istio-injection=enabled
+Developer
+    │
+    ▼
+GitHub Repository
+    │
+    ▼
+GitHub Actions
+    │
+    ├── Semgrep
+    ├── Trivy
+    ├── Gitleaks
+    └── Cosign
+    │
+    ▼
+ArgoCD (GitOps)
+    │
+    ▼
+Kubernetes Cluster
+    │
+┌─────────────────────────────────────────┐
+│ payments Namespace                      │
+│                                         │
+│  ┌───────────────┐     ┌──────────────┐ │
+│  │ Ledger API    │────▶│ Reporting    │ │
+│  │ + Envoy       │     │ Service      │ │
+│  └───────────────┘     └──────────────┘ │
+│                                         │
+└─────────────────────────────────────────┘
 ```
 
 ---
 
-# Application Deployment
+# Task 1 – Deploy & Harden the Workload
 
-Applied Kubernetes manifests:
+## Objective
+
+Deploy the Ledger API on Kubernetes and apply production-grade security controls.
+
+## Implemented
+
+- Kubernetes Deployment
+- Kubernetes Service
+- Dedicated Namespace
+- ConfigMap
+- Ingress
+- Dedicated ServiceAccount
+- RBAC (Least Privilege)
+- SecurityContext
+  - Non-root container
+  - Read-only root filesystem
+  - Drop all Linux capabilities
+  - seccomp RuntimeDefault
+- Resource Requests & Limits
+- Liveness Probe
+- Readiness Probe
+- Sealed Secrets
+- Kyverno / OPA Admission Policies
+
+## Security Decisions
+
+- Secrets removed from Git and encrypted using Sealed Secrets.
+- Least-privilege RBAC implemented.
+- SecurityContext applied to every workload.
+- Admission policies prevent insecure deployments.
+
+---
+
+# Task 2 – Secure CI/CD Pipeline & Supply Chain
+
+## Objective
+
+Build a secure DevSecOps pipeline.
+
+## Implemented
+
+- GitHub Actions
+- Semgrep (SAST)
+- Trivy Dependency Scan
+- Trivy Image Scan
+- Gitleaks Secret Scan
+- Cosign Image Signing
+- ArgoCD GitOps Deployment
+
+## Security Gates
+
+| Tool | Purpose | Fail Policy |
+|------|----------|------------|
+| Gitleaks | Secret Detection | Block build |
+| Semgrep | Static Code Analysis | Block on Critical findings |
+| Trivy | Dependency & Image Scan | Block on Critical CVEs |
+| Cosign | Image Signing | Only signed images are deployed |
+
+---
+
+# Task 3 – Service Mesh & Zero Trust
+
+## Objective
+
+Secure workload communication using Istio.
+
+## Implemented
+
+- Istio Installation
+- Automatic Sidecar Injection
+- STRICT mTLS
+- AuthorizationPolicy
+- NetworkPolicy
+
+## Certificate Management
+
+Istiod automatically issues short-lived SPIFFE workload certificates.
+
+Certificates are rotated automatically.
+
+The trust root is managed by Istiod.
+
+## Defense in Depth
+
+| Layer | Purpose |
+|--------|----------|
+| RBAC | Least Privilege |
+| SecurityContext | Hardened Containers |
+| NetworkPolicy | Kubernetes Network Isolation |
+| Istio mTLS | Encrypted Communication |
+| AuthorizationPolicy | Identity-based Access Control |
+| Sealed Secrets | Secret Protection |
+
+---
+
+# Task 4 – Reconnaissance & Penetration Testing
+
+## Part A – Passive Reconnaissance
+
+Performed passive reconnaissance using publicly available information only.
+
+### Activities
+
+- Certificate Transparency Logs (crt.sh)
+- Passive DNS Enumeration
+- Subdomain Enumeration
+- Attack Surface Analysis
+
+### Deliverables
+
+```
+task4/recon/subdomains.txt
+task4/report/recon-report.md
+task4/screenshots/task4-crtsh.png
+```
+
+---
+
+## Part B – Authorized Penetration Testing
+
+Active testing was performed **only against the provided vulnerable application**.
+
+### Findings
+
+- Sensitive Transaction Data Exposure
+- Server-Side Request Forgery (SSRF) behavior via `/fetch`
+- Unsafe YAML Loading observation
+
+Each finding includes:
+
+- CVSS v3.1 Score
+- Severity
+- Reproduction Steps
+- Impact
+- Remediation
+
+### Deliverables
+
+```
+task4/report/pentest-report.md
+task4/screenshots/pentest/transactions.png
+task4/screenshots/pentest/ssrf.png
+```
+
+---
+
+# PCI DSS Alignment
+
+This implementation aligns with PCI DSS security principles:
+
+- Least Privilege Access
+- Secret Management
+- Secure Container Configuration
+- Network Segmentation
+- Encrypted Service Communication
+- Secure CI/CD Pipeline
+- Defense in Depth
+
+---
+
+# Verification Commands
+
+```bash
+kubectl get pods -n payments
+
+kubectl get svc -n payments
+
+kubectl get deployments -n payments
+
+kubectl get peerauthentication -n payments
+
+kubectl get authorizationpolicy -n payments
+
+kubectl get networkpolicy -n payments
+```
+
+---
+
+# Technologies Used
+
+| Technology | Purpose |
+|------------|----------|
+| Docker | Containerization |
+| Kubernetes | Container Orchestration |
+| GitHub Actions | CI/CD |
+| Istio | Service Mesh |
+| ArgoCD | GitOps |
+| Semgrep | Static Application Security Testing |
+| Trivy | Dependency & Image Vulnerability Scanning |
+| Gitleaks | Secret Detection |
+| Cosign | Image Signing |
+| Kyverno / OPA | Admission Policy Enforcement |
+| Sealed Secrets | Secret Encryption |
+
+---
+
+# How to Run
+
+### Clone Repository
+
+```bash
+git clone https://github.com/student-ishikakamble/ledger-api.git
+
+cd ledger-api
+```
+
+### Deploy Kubernetes Resources
 
 ```bash
 kubectl apply -f k8s/
 ```
 
-Verify deployed resources:
+### Verify Deployment
 
 ```bash
 kubectl get all -n payments
 ```
 
-Current deployment status:
-
-```
-deployment.apps/ledger-api   3/3 READY
-deployment.apps/reporting    1/1 READY
-```
-
----
-
-# Istio Service Mesh Integration
-
-## Sidecar Injection
-
-Istio sidecar injection was enabled for the payments namespace.
-
-Each Ledger API pod contains:
-
-* Application container
-* Istio Envoy proxy sidecar
-
-Verification:
-
-```bash
-kubectl get pods -n payments
-```
-
-Expected output:
-
-```
-ledger-api-xxxxx   2/2 Running
-```
-
-The `2/2` status confirms:
-
-* Ledger API container is running
-* Istio proxy sidecar is injected successfully
-
----
-
-# Security Implementation
-
-## 1. Mutual TLS (mTLS)
-
-Istio PeerAuthentication was configured to enforce STRICT mTLS mode.
-
-Configuration file:
-
-```
-k8s/peer-authentication.yaml
-```
-
-Configuration:
-
-```yaml
-apiVersion: security.istio.io/v1
-kind: PeerAuthentication
-metadata:
-  name: default
-  namespace: payments
-spec:
-  mtls:
-    mode: STRICT
-```
-
-Verification:
+### Verify Istio Security
 
 ```bash
 kubectl get peerauthentication -n payments
-```
 
-Output:
-
-```
-NAME      MODE
-default   STRICT
-```
-
-Result:
-
-✅ All service-to-service communication inside the Istio mesh is encrypted.
-
----
-
-# 2. Istio Authorization Policy
-
-Implemented Istio AuthorizationPolicy for controlling access to Ledger API.
-
-Configuration file:
-
-```
-k8s/authorization-policy.yaml
-```
-
-Policy:
-
-* Allows traffic only from workloads inside the payments namespace
-* Blocks unauthorized service communication
-
-Verification:
-
-```bash
 kubectl get authorizationpolicy -n payments
-```
 
-Output:
-
-```
-NAME                ACTION
-ledger-api-policy   ALLOW
-```
-
-Result:
-
-✅ Service access is controlled through Istio authorization rules.
-
----
-
-# 3. Kubernetes Network Policy
-
-Implemented Kubernetes NetworkPolicy for additional network isolation.
-
-Configuration file:
-
-```
-k8s/network-policy.yaml
-```
-
-Policy rules:
-
-* Applied to ledger-api pods
-* Restricts incoming traffic
-* Allows only traffic from payments namespace
-
-Verification:
-
-```bash
-kubectl describe networkpolicy ledger-api-network-policy -n payments
-```
-
-Result:
-
-✅ Kubernetes network-level traffic restrictions are enabled.
-
----
-
-# Verification Results
-
-## Pods
-
-Command:
-
-```bash
-kubectl get pods -n payments
-```
-
-Result:
-
-```
-ledger-api-d79c9959c-ccxzh   2/2 Running
-ledger-api-d79c9959c-ghq6c   2/2 Running
-ledger-api-d79c9959c-nfmns   2/2 Running
-```
-
----
-
-## mTLS Verification
-
-Command:
-
-```bash
-kubectl get peerauthentication -n payments
-```
-
-Result:
-
-```
-NAME      MODE
-default   STRICT
-```
-
----
-
-## Authorization Verification
-
-Command:
-
-```bash
-kubectl get authorizationpolicy -n payments
-```
-
-Result:
-
-```
-NAME                ACTION
-ledger-api-policy   ALLOW
-```
-
----
-
-## NetworkPolicy Verification
-
-Command:
-
-```bash
-kubectl get networkpolicy -n payments
-```
-
-Result:
-
-```
-NAME                        POD-SELECTOR
-ledger-api-network-policy   app=ledger-api
-```
-
----
-
-# Useful Kubernetes Commands
-
-## Check Pods
-
-```bash
-kubectl get pods -n payments
-```
-
-## Check Services
-
-```bash
-kubectl get svc -n payments
-```
-
-## Check Deployments
-
-```bash
-kubectl get deployments -n payments
-```
-
-## Check Istio mTLS
-
-```bash
-kubectl get peerauthentication -n payments
-```
-
-## Check Authorization Policies
-
-```bash
-kubectl get authorizationpolicy -n payments
-```
-
-## Check Network Policies
-
-```bash
 kubectl get networkpolicy -n payments
 ```
 
 ---
 
-# Security Approach
+# Evidence
 
-This implementation follows a defense-in-depth security model:
+Repository includes screenshots for:
 
-1. Kubernetes namespace isolation
-2. Istio service mesh security
-3. Mutual TLS encryption
-4. Service-level authorization
-5. Kubernetes network traffic restriction
-
----
-
-# Final Assignment Status
-
-| Requirement           | Status     |
-| --------------------- | ---------- |
-| Kubernetes Deployment | ✅ Complete |
-| Service Configuration | ✅ Complete |
-| Istio Installation    | ✅ Complete |
-| Sidecar Injection     | ✅ Complete |
-| mTLS STRICT Mode      | ✅ Complete |
-| AuthorizationPolicy   | ✅ Complete |
-| NetworkPolicy         | ✅ Complete |
-| Security Verification | ✅ Complete |
+- Kubernetes Deployment
+- GitHub Actions Pipeline
+- Istio Sidecar Injection
+- mTLS Verification
+- AuthorizationPolicy
+- NetworkPolicy
+- Task 4 Passive Reconnaissance
+- Task 4 Penetration Testing
 
 ---
 
 # Conclusion
 
-The Ledger API application has been successfully deployed on Kubernetes with Istio-based security controls.
+This project demonstrates a defense-in-depth approach by combining Kubernetes workload hardening, secure software delivery, Zero Trust networking, and structured offensive security testing.
 
-The deployment provides:
-
-* Secure encrypted communication
-* Controlled service access
-* Network isolation
-* Production-style Kubernetes security practices
-
-Task completed successfully.
+The implementation focuses on automation, least privilege, encrypted communication, policy enforcement, and reproducible security practices while aligning with the objectives of the Dodo Payments Security & DevOps Engineer Technical Assessment.
