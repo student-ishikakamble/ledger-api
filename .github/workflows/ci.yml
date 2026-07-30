@@ -30,16 +30,19 @@ jobs:
 
       - name: Run Semgrep
         uses: returntocorp/semgrep-action@v1
+
       - name: Run Gitleaks
         run: |
           docker run --rm \
-            -v ${{ github.workspace }}:/repo \
+            -v "${{ github.workspace }}:/repo" \
             zricethezav/gitleaks:latest \
-            detect --source=/repo --verbose
-      
+            detect \
+            --source=/repo \
+            --config=/repo/.gitleaks.toml \
+            --verbose
 
       - name: Run Trivy Filesystem Scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: fs
           scan-ref: .
